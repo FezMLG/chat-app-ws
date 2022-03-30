@@ -159,7 +159,14 @@ const Home: NextPage = () => {
           value={user}
           autoComplete="off"
         />
-        <button onClick={handleOldClearing}>Clear Old Messages</button>
+        <button
+          onClick={handleOldClearing}
+          className={
+            'underline decoration-blue-500 decoration-2 underline-offset-1'
+          }
+        >
+          Clear Old Messages
+        </button>
       </div>
     </div>
   );
