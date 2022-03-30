@@ -12,6 +12,8 @@ import {
 } from '../consts';
 import { IMessage } from '../interfaces/message';
 
+const DEBUG = false;
+
 const Home: NextPage = () => {
   const [message, addMessage] = useState<string>();
   const [messages, addMessages] = useState<IMessage[]>([]);
@@ -127,7 +129,8 @@ const Home: NextPage = () => {
             }
             return (
               <div key={index} className={whoAreU}>
-                {value.message} - {sender} - {value.timestamp}
+                ({sender}) {value.message}
+                {DEBUG && '- ' + value.timestamp}
               </div>
             );
           })}
