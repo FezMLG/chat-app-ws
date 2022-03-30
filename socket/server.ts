@@ -5,6 +5,7 @@ import {
   OUT_MESSAGE,
   IN_OLD_MESSAGES,
   CLEAR_OLD_MESSAGES,
+  CLEARED_OLD_MESSAGES,
 } from '../consts';
 import { IMessage } from '../interfaces/message';
 
@@ -38,7 +39,8 @@ export function setupHandlers(io: Server) {
       timestamp: Date.now(),
     });
     socket.on(CLEAR_OLD_MESSAGES, () => {
-      messages.clear;
+      messages.clear();
+      socket.emit(CLEARED_OLD_MESSAGES, messages.get());
     });
     socket.on(GET_OLD_MESSAGES, () => {
       socket.emit(IN_OLD_MESSAGES, messages.get());

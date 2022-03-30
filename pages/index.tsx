@@ -20,6 +20,9 @@ import {
 import { IMessage } from '../interfaces/message';
 
 const Home: NextPage = () => {
+  //TODO:
+  //closing connection event
+
   const [message, addMessage] = useState<string>('');
   const [messages, addMessages] = useState<IMessage[]>([]);
   const scrollTo = useRef<HTMLDivElement>(null);
