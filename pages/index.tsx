@@ -67,10 +67,9 @@ const Home: NextPage = () => {
   const addMessageToList = (mess: IMessage) => {
     mess.message = mess.message.trim();
     addMessages((prevState) => {
-      return [...prevState, mess];
-    });
-    messages.sort(function (a, b) {
-      return a.timestamp - b.timestamp;
+      return [...prevState, mess].sort(function (a, b) {
+        return a.timestamp - b.timestamp;
+      });
     });
   };
 
