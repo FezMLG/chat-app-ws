@@ -3,7 +3,13 @@ import Head from 'next/head';
 import Image from 'next/image';
 import React, { useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { IN_MESSAGE, OUT_MESSAGE } from '../consts';
+import {
+  GET_OLD_MESSAGES,
+  IN_MESSAGE,
+  OUT_MESSAGE,
+  IN_OLD_MESSAGES,
+  CLEAR_OLD_MESSAGES,
+} from '../consts';
 import { IMessage } from '../interfaces/message';
 
 const Home: NextPage = () => {
@@ -17,16 +23,29 @@ const Home: NextPage = () => {
 
   useEffect(() => {
     setTimeout(() => {
-      addMessageToList({ user: 'System', message: '3sek' });
+      addMessageToList({
+        user: 'Local',
+        message: '3sek',
+        timestamp: Date.now(),
+      });
     }, 3000);
 
     const socket = io();
     socket?.on('connected', (arg: IMessage) => {
+      addMessages([]);
       addMessageToList(arg);
     });
-    socket?.on(IN_MESSAGE, (arg) => {
-      addMessageToList(arg);
-      console.log(arg);
+    socket.emit(GET_OLD_MESSAGES);
+    socket.on(IN_OLD_MESSAGES, (arg: IMessage[]) => {
+      arg?.forEach((element: IMessage) => {
+        addMessageToList(element);
+      });
+    });
+    socket?.on(IN_MESSAGE, (arg: IMessage) => {
+      if (arg) {
+        addMessageToList(arg);
+        console.log(arg);
+      }
     });
     setSocket(socket);
   }, []);
@@ -36,8 +55,9 @@ const Home: NextPage = () => {
       const createdMessage = {
         user,
         message,
-        // timestamp: Date.now(),
+        timestamp: Date.now(),
       };
+      addMessage('');
       addMessageToList(createdMessage);
       socket?.emit(OUT_MESSAGE, createdMessage);
     }
@@ -49,6 +69,9 @@ const Home: NextPage = () => {
     addMessages((prevState) => {
       return [...prevState, mess];
     });
+    messages.sort(function (a, b) {
+      return a.timestamp - b.timestamp;
+    });
   };
 
   useEffect(() => {
@@ -56,25 +79,24 @@ const Home: NextPage = () => {
       behavior: 'smooth',
       block: 'nearest',
     });
-
-    const mapMesseges = () => {};
   }, [messages]);
 
   function handleInput(e: React.ChangeEvent<HTMLInputElement>) {
-    console.log(e.target.value);
     addMessage(e.target.value);
   }
 
   function handleInputUser(e: React.ChangeEvent<HTMLInputElement>) {
-    console.log(e.target.value);
     setUser(e.target.value);
   }
 
   function handleKeyPress(e: any) {
     if (e.key === 'Enter') {
       handleSending();
-      console.log(e.target.value);
     }
+  }
+
+  function handleOldClearing() {
+    socket?.emit(CLEAR_OLD_MESSAGES);
   }
 
   return (
@@ -86,7 +108,11 @@ const Home: NextPage = () => {
             'h-full h-96 max-h-96 w-full overflow-scroll rounded-md border-2 px-5 py-2'
           }
           onClick={() =>
-            addMessageToList({ user: 'System', message: 'Connected' })
+            addMessageToList({
+              user: 'Local',
+              message: 'Clicked',
+              timestamp: Date.now(),
+            })
           }
         >
           {messages?.map((value, index) => {
@@ -95,13 +121,14 @@ const Home: NextPage = () => {
             if (value.user == user) {
               whoAreU = 'text-blue-600';
               sender = 'You';
+            } else if (value.user == 'Local') {
+              whoAreU = 'text-rose-900';
             } else if (value.user == 'System') {
-              whoAreU = 'text-rose-600';
-              console.log(value.user);
+              whoAreU = 'text-rose-500';
             }
             return (
               <div key={index} className={whoAreU}>
-                {value.message} - {sender}
+                {value.message} - {sender} - {value.timestamp}
               </div>
             );
           })}
@@ -114,6 +141,7 @@ const Home: NextPage = () => {
           <input
             type={'text'}
             id={'user-message'}
+            placeholder={'Your Message'}
             className={'h-full w-full rounded-md border-2 px-2'}
             onChange={handleInput}
             onKeyPress={handleKeyPress}
@@ -125,11 +153,13 @@ const Home: NextPage = () => {
         <input
           type={'text'}
           id={'user-name'}
+          placeholder={'User name'}
           className={'h-full w-full rounded-md border-2 px-2'}
           onChange={handleInputUser}
           value={user}
           autoComplete="off"
         />
+        <button onClick={handleOldClearing}>Clear Old Messages</button>
       </div>
     </div>
   );

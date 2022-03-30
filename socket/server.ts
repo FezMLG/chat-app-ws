@@ -1,18 +1,31 @@
 import { Server } from 'socket.io';
-import { IN_MESSAGE, OLD_MESSAGES, OUT_MESSAGE } from '../consts';
+import {
+  IN_MESSAGE,
+  GET_OLD_MESSAGES,
+  OUT_MESSAGE,
+  IN_OLD_MESSAGES,
+  CLEAR_OLD_MESSAGES,
+} from '../consts';
 import { IMessage } from '../interfaces/message';
 
-export function setupHandlers(io: Server) {
-  const messeges: IMessage[] = [];
+let messages: IMessage[] = [];
 
+export function setupHandlers(io: Server) {
   io.on('connection', (socket) => {
-    console.log('Client connected');
-    socket.emit('connected', { user: 'System', message: 'User Connected' });
-    socket.on(OLD_MESSAGES, (arg) => {
-      socket.emit(IN_MESSAGE, messeges);
+    console.log('Client connected', io.of('/').sockets.size);
+    socket.emit('connected', {
+      user: 'System',
+      message: 'User Connected',
+      timestamp: Date.now(),
     });
-    socket.on(OUT_MESSAGE, (arg) => {
-      console.log(arg);
+    socket.on(CLEAR_OLD_MESSAGES, () => {
+      messages = [];
+    });
+    socket.on(GET_OLD_MESSAGES, () => {
+      socket.emit(IN_OLD_MESSAGES, messages);
+    });
+    socket.on(OUT_MESSAGE, (arg: IMessage) => {
+      messages.push(arg);
       socket.broadcast.emit(IN_MESSAGE, arg);
     });
   });
