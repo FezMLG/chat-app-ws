@@ -1,3 +1,4 @@
+import { Snackbar, Alert, AlertColor } from '@mui/material';
 import type { NextPage } from 'next';
 import Head from 'next/head';
 import Image from 'next/image';
@@ -22,6 +23,29 @@ const Home: NextPage = () => {
   const [user, setUser] = useState<string>(
     `user ${String(Math.floor(Math.random() * 1000))}`
   );
+  const [open, setOpen] = useState<{
+    message: string;
+    isOpen: boolean;
+    type: AlertColor;
+  }>({
+    message: 'Message',
+    isOpen: false,
+    type: 'info',
+  });
+
+  const handleClose = (
+    event?: React.SyntheticEvent | Event,
+    reason?: string
+  ) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+
+    setOpen((prevState) => ({
+      ...prevState,
+      isOpen: false,
+    }));
+  };
 
   useEffect(() => {
     setTimeout(() => {
@@ -36,11 +60,21 @@ const Home: NextPage = () => {
     socket?.on('connected', (arg: IMessage) => {
       addMessages([]);
       addMessageToList(arg);
+      setOpen({
+        message: 'Connected to server',
+        isOpen: true,
+        type: 'success',
+      });
     });
     socket.emit(GET_OLD_MESSAGES);
     socket.on(IN_OLD_MESSAGES, (arg: IMessage[]) => {
       arg?.forEach((element: IMessage) => {
         addMessageToList(element);
+      });
+      setOpen({
+        message: 'Loaded old messages',
+        isOpen: true,
+        type: 'success',
       });
     });
     socket?.on(IN_MESSAGE, (arg: IMessage) => {
@@ -106,7 +140,7 @@ const Home: NextPage = () => {
         <div
           id="messages-container"
           className={
-            'h-full h-96 max-h-96 w-full overflow-scroll rounded-md border-2 bg-slate-50 px-5 py-2'
+            'flex h-96 max-h-96 w-full flex-col flex-nowrap overflow-scroll rounded-md border-2 bg-slate-50 px-5 py-2'
           }
           onClick={() =>
             addMessageToList({
@@ -119,16 +153,20 @@ const Home: NextPage = () => {
           {messages?.map((value, index) => {
             let whoAreU = 'text-black';
             let sender = value.user;
+            let position = 'self-start';
             if (value.user == user) {
               whoAreU = 'text-blue-600';
               sender = 'You';
+              position = 'self-end';
             } else if (value.user == 'Local') {
               whoAreU = 'text-rose-900';
+              position = 'self-center';
             } else if (value.user == 'System') {
               whoAreU = 'text-rose-500';
+              position = 'self-center';
             }
             return (
-              <div key={index} className={whoAreU}>
+              <div key={index} className={`${whoAreU} ${position}`}>
                 ({sender}) {value.message}
                 {DEBUG && '- ' + value.timestamp}
               </div>
@@ -175,6 +213,19 @@ const Home: NextPage = () => {
           Clear Old Messages
         </button>
       </div>
+      <Snackbar
+        open={open.isOpen}
+        autoHideDuration={6000}
+        onClose={handleClose}
+      >
+        <Alert
+          onClose={handleClose}
+          severity={open.type}
+          sx={{ width: '100%' }}
+        >
+          {open.message}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };
