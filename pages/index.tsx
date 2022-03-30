@@ -53,7 +53,7 @@ const Home: NextPage = () => {
 
   return (
     <div id="window" className={"w-screen h-full min-h-screen bg-slate-100"}>
-      <div id="chat-window" className={"max-w-xl mx-auto gap-5"}>
+      <div id="chat-window" className={"max-w-xl mx-auto gap-5 py-10"}>
         <div
           id="messages-container"
           className={"w-full h-full h-96 max-h-96 rounded-md border-2 overflow-scroll px-5 py-2"}
