@@ -105,7 +105,7 @@ const Home: NextPage = () => {
         <div
           id="messages-container"
           className={
-            'h-full h-96 max-h-96 w-full overflow-scroll rounded-md border-2 px-5 py-2'
+            'h-full h-96 max-h-96 w-full overflow-scroll rounded-md border-2 bg-slate-50 px-5 py-2'
           }
           onClick={() =>
             addMessageToList({
@@ -148,7 +148,12 @@ const Home: NextPage = () => {
             value={message}
             autoComplete="off"
           />
-          <button onClick={handleSending}>Send</button>
+          <button
+            onClick={handleSending}
+            className={'mr-5 rounded-md bg-sky-600 px-5 text-white'}
+          >
+            Send
+          </button>
         </div>
         <input
           type={'text'}
