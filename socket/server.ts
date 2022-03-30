@@ -9,7 +9,7 @@ import {
 import { IMessage } from '../interfaces/message';
 
 class Messages {
-  messages: IMessage[];
+  messages: IMessage[] = [];
 
   constructor() {
     this.messages = [];
@@ -21,6 +21,10 @@ class Messages {
 
   clear() {
     this.messages = [];
+  }
+
+  get() {
+    return this.messages;
   }
 }
 
@@ -37,7 +41,7 @@ export function setupHandlers(io: Server) {
       messages.clear;
     });
     socket.on(GET_OLD_MESSAGES, () => {
-      socket.emit(IN_OLD_MESSAGES, messages);
+      socket.emit(IN_OLD_MESSAGES, messages.get());
     });
     socket.on(OUT_MESSAGE, (arg: IMessage) => {
       messages.push(arg);

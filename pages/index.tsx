@@ -16,7 +16,7 @@ import { IMessage } from '../interfaces/message';
 const DEBUG = false;
 
 const Home: NextPage = () => {
-  const [message, addMessage] = useState<string>();
+  const [message, addMessage] = useState<string>('');
   const [messages, addMessages] = useState<IMessage[]>([]);
   const scrollTo = useRef<HTMLDivElement>(null);
   const [socket, setSocket] = useState<Socket>();
@@ -54,6 +54,7 @@ const Home: NextPage = () => {
     });
     socket.emit(GET_OLD_MESSAGES);
     socket.on(IN_OLD_MESSAGES, (arg: IMessage[]) => {
+      console.log(IN_OLD_MESSAGES, typeof arg, arg);
       arg?.forEach((element: IMessage) => {
         addMessageToList(element);
       });
@@ -65,8 +66,8 @@ const Home: NextPage = () => {
     });
     socket?.on(IN_MESSAGE, (arg: IMessage) => {
       if (arg) {
+        console.log(IN_MESSAGE, arg);
         addMessageToList(arg);
-        console.log(arg);
       }
     });
     setSocket(socket);
@@ -74,14 +75,22 @@ const Home: NextPage = () => {
 
   const handleSending = () => {
     if (message != null) {
-      const createdMessage = {
-        user,
-        message,
-        timestamp: Date.now(),
-      };
-      addMessage('');
-      addMessageToList(createdMessage);
-      socket?.emit(OUT_MESSAGE, createdMessage);
+      if (message.length > 500) {
+        setOpen({
+          message: 'Message is longer than 500 characters',
+          isOpen: true,
+          type: 'error',
+        });
+      } else {
+        const createdMessage = {
+          user,
+          message,
+          timestamp: Date.now(),
+        };
+        addMessage('');
+        addMessageToList(createdMessage);
+        socket?.emit(OUT_MESSAGE, createdMessage);
+      }
     }
     console.log(messages);
   };
@@ -140,7 +149,7 @@ const Home: NextPage = () => {
         <div
           id="messages-container"
           className={
-            'flex h-96 max-h-96 w-full flex-col flex-nowrap overflow-scroll rounded-md border-2 bg-slate-50 px-5 py-2'
+            'flex h-96 max-h-96 w-full flex-col flex-nowrap gap-2.5 overflow-y-scroll rounded-md border-2 bg-slate-50 px-5 py-2'
           }
           onClick={() =>
             addMessageToList({
@@ -153,22 +162,25 @@ const Home: NextPage = () => {
           {messages?.map((value, index) => {
             let whoAreU = 'text-black';
             let sender = value.user;
-            let position = 'self-start';
+            let position = 'self-start text-left';
             if (value.user == user) {
               whoAreU = 'text-blue-600';
               sender = 'You';
-              position = 'self-end';
+              position = 'self-end text-right';
             } else if (value.user == 'Local') {
               whoAreU = 'text-rose-900';
-              position = 'self-center';
+              position = 'self-center text-center';
             } else if (value.user == 'System') {
               whoAreU = 'text-rose-500';
-              position = 'self-center';
+              position = 'self-center text-center';
             }
             return (
-              <div key={index} className={`${whoAreU} ${position}`}>
-                ({sender}) {value.message}
-                {DEBUG && '- ' + value.timestamp}
+              <div key={index} className={`flex w-full flex-col`}>
+                <p className={`${whoAreU} ${position} flex w-9/12 flex-col`}>
+                  <span className={'text-xs'}>{sender}</span>
+                  <span>{value.message}</span>
+                  {DEBUG && '- ' + value.timestamp}
+                </p>
               </div>
             );
           })}
