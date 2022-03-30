@@ -4,8 +4,8 @@ import Image from 'next/image'
 import { useState } from "react";
 
 const Home: NextPage = () => {
-  const [message, addMessage] = useState<String>();
-  const [messages, addMessages] = useState<String[]>([])
+  const [message, addMessage] = useState<string>();
+  const [messages, addMessages] = useState<string[]>([])
 
   const handleSending = () => {
     console.log("message send");
@@ -16,6 +16,7 @@ const Home: NextPage = () => {
           message
         ]
       })
+      addMessage("")
     }
     console.log(messages);
   }
@@ -25,8 +26,15 @@ const Home: NextPage = () => {
     addMessage(e.target.value);
   }
 
+  function handleKeyPress(e: any){
+    if(e.key === 'Enter'){
+      handleSending();
+      console.log(e.target.value);
+    }
+  }
+
   return (
-    <div id="window">
+    <div id="window" className={"w-screen h-screen bg-slate-100"}>
       <div id="chat-window">
         <div id="messages-container">
           {messages?.map((value, index)=>{
@@ -36,7 +44,7 @@ const Home: NextPage = () => {
           })}
         </div>
         <div id="input-container">
-          <input type={"text"} id={"user-message"} onChange={handleInput}/>
+          <input type={"text"} id={"user-message"} onChange={handleInput} onKeyPress={handleKeyPress} value={message}/>
           <button onClick={handleSending}>Send</button>
         </div>
       </div>
