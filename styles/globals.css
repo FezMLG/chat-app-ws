@@ -5,4 +5,5 @@
 #chat-window {
     display: grid;
     grid-template-rows: 1fr 50px;
+    justify-items: center;
 }
