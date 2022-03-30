@@ -33,20 +33,6 @@ const Home: NextPage = () => {
     type: 'info',
   });
 
-  const handleClose = (
-    event?: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-
-    setOpen((prevState) => ({
-      ...prevState,
-      isOpen: false,
-    }));
-  };
-
   useEffect(() => {
     setTimeout(() => {
       addMessageToList({
@@ -129,6 +115,20 @@ const Home: NextPage = () => {
       handleSending();
     }
   }
+
+  const handleClose = (
+    event?: React.SyntheticEvent | Event,
+    reason?: string
+  ) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+
+    setOpen((prevState) => ({
+      ...prevState,
+      isOpen: false,
+    }));
+  };
 
   function handleOldClearing() {
     socket?.emit(CLEAR_OLD_MESSAGES);

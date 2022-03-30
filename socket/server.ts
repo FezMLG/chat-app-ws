@@ -8,9 +8,24 @@ import {
 } from '../consts';
 import { IMessage } from '../interfaces/message';
 
-let messages: IMessage[] = [];
+class Messages {
+  messages: IMessage[];
+
+  constructor() {
+    this.messages = [];
+  }
+
+  push(message: IMessage) {
+    this.messages.push(message);
+  }
+
+  clear() {
+    this.messages = [];
+  }
+}
 
 export function setupHandlers(io: Server) {
+  const messages = new Messages();
   io.on('connection', (socket) => {
     console.log('Client connected', io.of('/').sockets.size);
     socket.emit('connected', {
@@ -19,7 +34,7 @@ export function setupHandlers(io: Server) {
       timestamp: Date.now(),
     });
     socket.on(CLEAR_OLD_MESSAGES, () => {
-      messages = [];
+      messages.clear;
     });
     socket.on(GET_OLD_MESSAGES, () => {
       socket.emit(IN_OLD_MESSAGES, messages);
