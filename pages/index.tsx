@@ -1,4 +1,10 @@
-import { Snackbar, Alert, AlertColor } from '@mui/material';
+import {
+  Snackbar,
+  Alert,
+  AlertColor,
+  Switch,
+  FormControlLabel,
+} from '@mui/material';
 import type { NextPage } from 'next';
 import Head from 'next/head';
 import Image from 'next/image';
@@ -12,8 +18,6 @@ import {
   CLEAR_OLD_MESSAGES,
 } from '../consts';
 import { IMessage } from '../interfaces/message';
-
-const DEBUG = false;
 
 const Home: NextPage = () => {
   const [message, addMessage] = useState<string>('');
@@ -32,14 +36,16 @@ const Home: NextPage = () => {
     isOpen: false,
     type: 'info',
   });
+  const [DEBUG, setDebug] = useState<boolean>(false);
 
   useEffect(() => {
     setTimeout(() => {
-      addMessageToList({
-        user: 'Local',
-        message: '3sek',
-        timestamp: Date.now(),
-      });
+      DEBUG &&
+        addMessageToList({
+          user: 'Local',
+          message: '3sek',
+          timestamp: Date.now(),
+        });
     }, 3000);
 
     const socket = io();
@@ -152,6 +158,7 @@ const Home: NextPage = () => {
             'flex h-96 max-h-96 w-full flex-col flex-nowrap gap-2.5 overflow-y-scroll rounded-md border-2 bg-slate-50 px-5 py-2'
           }
           onClick={() =>
+            DEBUG &&
             addMessageToList({
               user: 'Local',
               message: 'Clicked',
@@ -179,7 +186,7 @@ const Home: NextPage = () => {
                 <p className={`${whoAreU} ${position} flex w-9/12 flex-col`}>
                   <span className={'text-xs'}>{sender}</span>
                   <span>{value.message}</span>
-                  {DEBUG && '- ' + value.timestamp}
+                  {DEBUG && value.timestamp}
                 </p>
               </div>
             );
@@ -224,6 +231,16 @@ const Home: NextPage = () => {
         >
           Clear Old Messages
         </button>
+        <FormControlLabel
+          control={
+            <Switch
+              checked={DEBUG}
+              onChange={() => setDebug((prev) => !prev)}
+              inputProps={{ 'aria-label': 'controlled' }}
+            />
+          }
+          label="Debug Mode"
+        />
       </div>
       <Snackbar
         open={open.isOpen}
