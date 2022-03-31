@@ -7,3 +7,8 @@
     grid-template-rows: 1fr 50px;
     justify-items: center;
 }
+
+#app-container {
+    display: grid;
+    grid-template-columns: minmax(50px, 25%) 1fr;
+}

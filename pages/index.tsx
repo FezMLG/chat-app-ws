@@ -4,10 +4,10 @@ import {
   AlertColor,
   Switch,
   FormControlLabel,
+  LinearProgress,
+  Fade,
 } from '@mui/material';
 import type { NextPage } from 'next';
-import Head from 'next/head';
-import Image from 'next/image';
 import React, { useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import {
@@ -16,8 +16,11 @@ import {
   OUT_MESSAGE,
   IN_OLD_MESSAGES,
   CLEAR_OLD_MESSAGES,
+  CONNECT_USER,
+  DISCONNECT_USER,
 } from '../consts';
 import { IMessage } from '../interfaces/message';
+import { IUser } from '../interfaces/user';
 
 const Home: NextPage = () => {
   //TODO:
@@ -30,6 +33,7 @@ const Home: NextPage = () => {
   const [user, setUser] = useState<string>(
     `user ${String(Math.floor(Math.random() * 1000))}`
   );
+  const [users, setUsers] = useState<IUser[]>([]);
   const [open, setOpen] = useState<{
     message: string;
     isOpen: boolean;
@@ -40,6 +44,7 @@ const Home: NextPage = () => {
     type: 'info',
   });
   const [DEBUG, setDebug] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     setTimeout(() => {
@@ -52,7 +57,7 @@ const Home: NextPage = () => {
     }, 3000);
 
     const socket = io();
-    socket?.on('connected', (arg: IMessage) => {
+    socket?.once('connected', (arg: IMessage, arg2: string) => {
       addMessages([]);
       addMessageToList(arg);
       setOpen({
@@ -60,24 +65,57 @@ const Home: NextPage = () => {
         isOpen: true,
         type: 'success',
       });
+      setUsers((prev) => {
+        return [...prev, { userName: user, userId: arg2 }];
+      });
+      setLoading(true);
+    });
+    socket.emit(CONNECT_USER, user);
+    socket.on(CONNECT_USER, (arg: IUser) => {
+      console.log('connected', arg);
+      setUsers((prev) => {
+        return [...prev, arg];
+      });
     });
     socket.emit(GET_OLD_MESSAGES);
     socket.on(IN_OLD_MESSAGES, (arg: IMessage[]) => {
       console.log(IN_OLD_MESSAGES, typeof arg, arg);
-      arg?.forEach((element: IMessage) => {
-        addMessageToList(element);
-      });
-      setOpen({
-        message: 'Loaded old messages',
-        isOpen: true,
-        type: 'success',
-      });
+      if (arg?.length > 0) {
+        arg.forEach((element: IMessage) => {
+          addMessageToList(element);
+        });
+        setOpen({
+          message: 'Loaded old messages',
+          isOpen: true,
+          type: 'success',
+        });
+      } else {
+        setOpen({
+          message: 'No old messages',
+          isOpen: true,
+          type: 'success',
+        });
+      }
+      setLoading(false);
     });
-    socket?.on(IN_MESSAGE, (arg: IMessage) => {
+    socket.on(DISCONNECT_USER, (arg: IMessage) => {
       if (arg) {
         console.log(IN_MESSAGE, arg);
         addMessageToList(arg);
       }
+    });
+    socket.on(IN_MESSAGE, (arg: IMessage) => {
+      if (arg) {
+        console.log(IN_MESSAGE, arg);
+        addMessageToList(arg);
+      }
+    });
+    socket.on('disconnect', function () {
+      setOpen({
+        message: 'Disconnected from server',
+        isOpen: true,
+        type: 'error',
+      });
     });
     setSocket(socket);
   }, []);
@@ -154,96 +192,115 @@ const Home: NextPage = () => {
 
   return (
     <div id="window" className={'h-full min-h-screen w-screen bg-slate-100'}>
-      <div id="chat-window" className={'mx-auto max-w-xl gap-5 py-10'}>
+      <div id={'app-container'} className={'mx-auto max-w-3xl pt-12'}>
         <div
-          id="messages-container"
+          id={'user-window'}
           className={
-            'flex h-96 max-h-96 w-full flex-col flex-nowrap gap-2.5 overflow-y-scroll rounded-md border-2 bg-slate-50 px-5 py-2'
-          }
-          onClick={() =>
-            DEBUG &&
-            addMessageToList({
-              user: 'Local',
-              message: 'Clicked',
-              timestamp: Date.now(),
-            })
+            'flex h-96 max-h-96 w-48 max-w-xs flex-col flex-nowrap gap-2.5 overflow-y-auto rounded-md border-2 bg-slate-50 px-5 py-2'
           }
         >
-          {messages?.map((value, index) => {
-            let whoAreU = 'text-black';
-            let sender = value.user;
-            let position = 'self-start text-left';
-            if (value.user == user) {
-              whoAreU = 'text-blue-600';
-              sender = 'You';
-              position = 'self-end text-right';
-            } else if (value.user == 'Local') {
-              whoAreU = 'text-rose-900';
-              position = 'self-center text-center';
-            } else if (value.user == 'System') {
-              whoAreU = 'text-rose-500';
-              position = 'self-center text-center';
-            }
-            return (
-              <div key={index} className={`flex w-full flex-col`}>
-                <p className={`${whoAreU} ${position} flex w-9/12 flex-col`}>
-                  <span className={'text-xs'}>{sender}</span>
-                  <span>{value.message}</span>
-                  {DEBUG && value.timestamp}
-                </p>
-              </div>
-            );
-          })}
-          <div ref={scrollTo} />
+          List Of Users
+          <div>
+            {users?.map((value, index) => {
+              return <p key={index}>{value.userName}</p>;
+            })}
+          </div>
         </div>
-        <div
-          id="input-container"
-          className={'sticky bottom-0 flex w-full flex-row gap-5'}
-        >
+        <div id="chat-window" className={'mx-auto w-full max-w-xl gap-5'}>
+          <div
+            id="messages-container"
+            className={
+              'flex h-96 max-h-96 w-full flex-col flex-nowrap gap-2.5 overflow-y-auto rounded-md border-2 bg-slate-50 px-5 py-2'
+            }
+            onClick={() =>
+              DEBUG &&
+              addMessageToList({
+                user: 'Local',
+                message: 'Clicked',
+                timestamp: Date.now(),
+              })
+            }
+          >
+            <Fade in={loading} unmountOnExit>
+              <LinearProgress />
+            </Fade>
+
+            {messages?.map((value, index) => {
+              let whoAreU = 'text-black';
+              let sender = value.user;
+              let position = 'self-start text-left';
+              if (value.user == user) {
+                whoAreU = 'text-blue-600';
+                sender = 'You';
+                position = 'self-end text-right';
+              } else if (value.user == 'Local') {
+                whoAreU = 'text-rose-900';
+                position = 'self-center text-center';
+              } else if (value.user == 'System') {
+                whoAreU = 'text-rose-500';
+                position = 'self-center text-center';
+              }
+              return (
+                <div key={index} className={`flex w-full flex-col`}>
+                  <p className={`${whoAreU} ${position} flex w-9/12 flex-col`}>
+                    <span className={'text-xs'}>{sender}</span>
+                    <span>{value.message}</span>
+                    {DEBUG && value.timestamp}
+                  </p>
+                </div>
+              );
+            })}
+            <div ref={scrollTo} />
+          </div>
+          <div
+            id="input-container"
+            className={'sticky bottom-0 flex w-full flex-row gap-5'}
+          >
+            <input
+              type={'text'}
+              id={'user-message'}
+              placeholder={'Your Message'}
+              className={'h-full w-full rounded-md border-2 px-2'}
+              onChange={handleInput}
+              onKeyPress={handleKeyPress}
+              value={message}
+              autoComplete="off"
+            />
+            <button
+              onClick={handleSending}
+              className={'mr-5 rounded-md bg-sky-600 px-5 text-white'}
+            >
+              Send
+            </button>
+          </div>
           <input
             type={'text'}
-            id={'user-message'}
-            placeholder={'Your Message'}
+            id={'user-name'}
+            placeholder={'User name'}
             className={'h-full w-full rounded-md border-2 px-2'}
-            onChange={handleInput}
-            onKeyPress={handleKeyPress}
-            value={message}
+            onChange={handleInputUser}
+            value={user}
             autoComplete="off"
           />
           <button
-            onClick={handleSending}
-            className={'mr-5 rounded-md bg-sky-600 px-5 text-white'}
+            onClick={handleOldClearing}
+            className={
+              'underline decoration-blue-500 decoration-2 underline-offset-1'
+            }
           >
-            Send
+            Clear Old Messages
           </button>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={DEBUG}
+                onChange={() => setDebug((prev) => !prev)}
+                inputProps={{ 'aria-label': 'controlled' }}
+              />
+            }
+            label="Debug Mode"
+          />
         </div>
-        <input
-          type={'text'}
-          id={'user-name'}
-          placeholder={'User name'}
-          className={'h-full w-full rounded-md border-2 px-2'}
-          onChange={handleInputUser}
-          value={user}
-          autoComplete="off"
-        />
-        <button
-          onClick={handleOldClearing}
-          className={
-            'underline decoration-blue-500 decoration-2 underline-offset-1'
-          }
-        >
-          Clear Old Messages
-        </button>
-        <FormControlLabel
-          control={
-            <Switch
-              checked={DEBUG}
-              onChange={() => setDebug((prev) => !prev)}
-              inputProps={{ 'aria-label': 'controlled' }}
-            />
-          }
-          label="Debug Mode"
-        />
       </div>
       <Snackbar
         open={open.isOpen}
