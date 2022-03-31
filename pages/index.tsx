@@ -25,6 +25,7 @@ import { IUser } from '../interfaces/user';
 const Home: NextPage = () => {
   //TODO:
   //closing connection event
+  //when fetching old messages, fetch connected users
 
   const [message, addMessage] = useState<string>('');
   const [messages, addMessages] = useState<IMessage[]>([]);
