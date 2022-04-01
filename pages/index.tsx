@@ -12,8 +12,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import {
   GET_OLD_MESSAGES,
-  IN_MESSAGE,
-  OUT_MESSAGE,
+  NEW_CLIENT_MESSAGE,
   IN_OLD_MESSAGES,
   CLEAR_OLD_MESSAGES,
   CONNECT_USER,
@@ -34,7 +33,11 @@ const Home: NextPage = () => {
   //when fetching old messages, fetch connected users
 
   const [message, setMessage] = useState<string>('');
-  const [room, setRoom] = useState<string>('General');
+  const [activeRoom, setActiveRoom] = useState<string>('General');
+  const [availableRooms, setAvailableRooms] = useState<string[]>([
+    'General',
+    'Welcome',
+  ]);
   const [messages, setMessages] = useState<IMessage[]>([]);
   const scrollTo = useRef<HTMLDivElement>(null);
   const [socket, setSocket] = useState<Socket>();
@@ -69,14 +72,20 @@ const Home: NextPage = () => {
       });
       setLoading(true);
     });
+
+    // * initialize
     socket.emit(CONNECT_USER, user);
-    socket.emit(JOIN_ROOM_REQUEST, room);
+    socket.emit(JOIN_ROOM_REQUEST, activeRoom);
+
+    // * other user connect
     socket.on(CONNECT_USER, (arg: IUser) => {
       console.log('connected', arg);
       setUsers((prev) => {
         return [...prev, arg];
       });
     });
+
+    // * room change
     socket.on(IN_OLD_MESSAGES, (messages: IMessage[], users: IUser[]) => {
       console.log(IN_OLD_MESSAGES, typeof messages, messages);
       if (messages?.length > 0) {
@@ -113,18 +122,6 @@ const Home: NextPage = () => {
       }
       setLoading(false);
     });
-    socket.on(DISCONNECT_USER, (arg: IMessage) => {
-      if (arg) {
-        console.log(IN_MESSAGE, arg);
-        addMessageToList(arg);
-      }
-    });
-    socket.on(IN_MESSAGE, (arg: IMessage) => {
-      if (arg) {
-        console.log(IN_MESSAGE, arg);
-        addMessageToList(arg);
-      }
-    });
     socket.on(JOIN_ROOM_ANSWER, (answer: boolean, name: string) => {
       if (answer) {
         setOpen({
@@ -132,19 +129,37 @@ const Home: NextPage = () => {
           isOpen: true,
           type: 'success',
         });
-        setRoom(name);
+        setActiveRoom(name);
         socket.emit(GET_OLD_MESSAGES);
         socket.emit(GET_ROOM_USERS);
         setMessages([]);
         setUsers([]);
       }
     });
+
+    // * new message
+    socket.on(NEW_CLIENT_MESSAGE, (arg: IMessage) => {
+      if (arg) {
+        console.log(NEW_CLIENT_MESSAGE, arg);
+        addMessageToList(arg);
+      }
+    });
+
+    // * disconnecting this user
     socket.on('disconnect', function () {
       setOpen({
         message: 'Disconnected from server',
         isOpen: true,
         type: 'error',
       });
+    });
+
+    // * disconecting other user
+    socket.on(DISCONNECT_USER, (arg: IMessage) => {
+      if (arg) {
+        console.log(NEW_CLIENT_MESSAGE, arg);
+        addMessageToList(arg);
+      }
     });
     setSocket(socket);
   }, []);
@@ -181,7 +196,7 @@ const Home: NextPage = () => {
         };
         setMessage('');
         addMessageToList(createdMessage);
-        socket?.emit(OUT_MESSAGE, createdMessage);
+        socket?.emit(NEW_CLIENT_MESSAGE, createdMessage);
       }
     }
     console.log(messages);
@@ -285,7 +300,7 @@ const Home: NextPage = () => {
             label="Debug Mode"
           />
         </div>
-        <Rooms room={room} socket={socket} />
+        <Rooms rooms={availableRooms} room={activeRoom} socket={socket} />
       </div>
       <Snackbar
         open={open.isOpen}

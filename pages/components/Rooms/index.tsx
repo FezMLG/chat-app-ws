@@ -2,11 +2,10 @@ import React, { FunctionComponent, useState } from 'react';
 import { Socket } from 'socket.io-client';
 import ListOfRooms from './ListOfRooms';
 const Rooms: FunctionComponent<{
+  rooms: string[];
   room: string;
   socket: Socket | undefined;
-}> = ({ room, socket }) => {
-  const [rooms, setRooms] = useState<string[]>(['General', 'Welcome']);
-
+}> = ({ rooms, room, socket }) => {
   return (
     <div
       id={'room-window'}
