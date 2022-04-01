@@ -24,9 +24,9 @@ import {
 } from '../consts';
 import { IMessage } from '../interfaces/message';
 import { IUser } from '../interfaces/user';
-import { ListOfMessages } from './components/ListOfMessages';
-import { ListOfRooms } from './components/ListOfRooms';
-import { ListOfUsers } from './components/ListOfUsers';
+import ListOfMessages from './components/ListOfMessages';
+import ListOfRooms from './components/ListOfRooms';
+import ListOfUsers from './components/ListOfUsers';
 
 const Home: NextPage = () => {
   //TODO:
@@ -197,22 +197,18 @@ const Home: NextPage = () => {
     console.log(messages);
   };
 
-  function handleInput(e: React.ChangeEvent<HTMLInputElement>) {
+  const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     setMessage(e.target.value);
-  }
+  };
 
-  function handleInputUser(e: React.ChangeEvent<HTMLInputElement>) {
+  const handleInputUser = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUser(e.target.value);
-  }
+  };
 
-  function handleKeyPress(e: any) {
+  const handleKeyPress = (e: any) => {
     if (e.key === 'Enter') {
       handleSending();
     }
-  }
-
-  const handleRoomChange = (e: any) => {
-    socket?.emit(JOIN_ROOM_REQUEST, e.target.value);
   };
 
   const handleClose = (
@@ -229,9 +225,9 @@ const Home: NextPage = () => {
     }));
   };
 
-  function handleOldClearing() {
+  const handleOldClearing = () => {
     socket?.emit(CLEAR_OLD_MESSAGES);
-  }
+  };
 
   return (
     <div id="window" className={'h-full min-h-screen w-screen bg-slate-100'}>
@@ -243,7 +239,7 @@ const Home: NextPage = () => {
           }
         >
           <span className={'font-semibold'}>List Of Users</span>
-          <div>{ListOfUsers(users, user)}</div>
+          <ListOfUsers users={users} user={user} />
         </div>
         <div id="chat-window" className={'mx-auto w-full max-w-xl gap-5'}>
           <div
@@ -263,8 +259,7 @@ const Home: NextPage = () => {
             <Fade in={loading} unmountOnExit>
               <LinearProgress />
             </Fade>
-
-            {ListOfMessages(messages, user, DEBUG)}
+            <ListOfMessages messages={messages} user={user} DEBUG={DEBUG} />
             <div ref={scrollTo} />
           </div>
           <div
@@ -323,9 +318,7 @@ const Home: NextPage = () => {
           }
         >
           <span className={'font-semibold'}>List Of Rooms</span>
-          <div className={'flex flex-col flex-wrap content-start items-start'}>
-            {ListOfRooms(rooms, room, handleRoomChange)}
-          </div>
+          <ListOfRooms rooms={rooms} room={room} socket={socket} />
         </div>
       </div>
       <Snackbar
