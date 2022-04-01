@@ -10,5 +10,7 @@
 
 #app-container {
     display: grid;
-    grid-template-columns: minmax(50px, 25%) 1fr;
+    grid-template-columns: minmax(50px, 20%) 1fr minmax(50px, 20%);
+    gap: 10px;
+    justify-items: center;
 }

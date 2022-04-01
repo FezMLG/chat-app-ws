@@ -52,6 +52,7 @@ export function setupHandlers(io: Server) {
   const users = new Users();
   io.on('connection', (socket) => {
     console.log('Client connected', io.of('/').sockets.size);
+    socket.join('General');
     socket.emit(
       'connected',
       {
@@ -77,11 +78,11 @@ export function setupHandlers(io: Server) {
       socket.emit(CLEARED_OLD_MESSAGES, messages.get());
     });
     socket.on(GET_OLD_MESSAGES, () => {
-      socket.emit(IN_OLD_MESSAGES, messages.get());
+      socket.emit(IN_OLD_MESSAGES, messages.get(), users.get());
     });
     socket.on(OUT_MESSAGE, (arg: IMessage) => {
       messages.push(arg);
-      socket.broadcast.emit(IN_MESSAGE, arg);
+      socket.to('General').emit(IN_MESSAGE, arg);
     });
   });
 }

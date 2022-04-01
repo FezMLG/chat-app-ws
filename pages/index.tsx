@@ -27,8 +27,10 @@ const Home: NextPage = () => {
   //closing connection event
   //when fetching old messages, fetch connected users
 
-  const [message, addMessage] = useState<string>('');
-  const [messages, addMessages] = useState<IMessage[]>([]);
+  const [message, setMessage] = useState<string>('');
+  const [room, setRoom] = useState<string>('General');
+  const [rooms, setRooms] = useState<string[]>(['General', 'Welcome']);
+  const [messages, setMessages] = useState<IMessage[]>([]);
   const scrollTo = useRef<HTMLDivElement>(null);
   const [socket, setSocket] = useState<Socket>();
   const [user, setUser] = useState<string>(
@@ -59,7 +61,7 @@ const Home: NextPage = () => {
 
     const socket = io();
     socket?.once('connected', (arg: IMessage, arg2: string) => {
-      addMessages([]);
+      setMessages([]);
       addMessageToList(arg);
       setOpen({
         message: 'Connected to server',
@@ -79,11 +81,27 @@ const Home: NextPage = () => {
       });
     });
     socket.emit(GET_OLD_MESSAGES);
-    socket.on(IN_OLD_MESSAGES, (arg: IMessage[]) => {
-      console.log(IN_OLD_MESSAGES, typeof arg, arg);
-      if (arg?.length > 0) {
-        arg.forEach((element: IMessage) => {
+    socket.on(IN_OLD_MESSAGES, (messages: IMessage[], users: IUser[]) => {
+      console.log(IN_OLD_MESSAGES, typeof messages, messages);
+      if (messages?.length > 0) {
+        messages.forEach((element: IMessage) => {
           addMessageToList(element);
+        });
+        setOpen({
+          message: 'Loaded old messages',
+          isOpen: true,
+          type: 'success',
+        });
+      } else {
+        setOpen({
+          message: 'No old messages',
+          isOpen: true,
+          type: 'success',
+        });
+      }
+      if (users?.length > 0) {
+        setUsers((prevState) => {
+          return [...prevState].concat(users);
         });
         setOpen({
           message: 'Loaded old messages',
@@ -135,7 +153,7 @@ const Home: NextPage = () => {
           message,
           timestamp: Date.now(),
         };
-        addMessage('');
+        setMessage('');
         addMessageToList(createdMessage);
         socket?.emit(OUT_MESSAGE, createdMessage);
       }
@@ -145,7 +163,7 @@ const Home: NextPage = () => {
 
   const addMessageToList = (mess: IMessage) => {
     mess.message = mess.message.trim();
-    addMessages((prevState) => {
+    setMessages((prevState) => {
       return [...prevState, mess].sort((a, b) => {
         return a.timestamp - b.timestamp;
       });
@@ -160,7 +178,7 @@ const Home: NextPage = () => {
   }, [messages]);
 
   function handleInput(e: React.ChangeEvent<HTMLInputElement>) {
-    addMessage(e.target.value);
+    setMessage(e.target.value);
   }
 
   function handleInputUser(e: React.ChangeEvent<HTMLInputElement>) {
@@ -172,6 +190,11 @@ const Home: NextPage = () => {
       handleSending();
     }
   }
+
+  const handleRoomChange = (e: any) => {
+    setRoom(e.target.value);
+    console.log(room);
+  };
 
   const handleClose = (
     event?: React.SyntheticEvent | Event,
@@ -193,17 +216,25 @@ const Home: NextPage = () => {
 
   return (
     <div id="window" className={'h-full min-h-screen w-screen bg-slate-100'}>
-      <div id={'app-container'} className={'mx-auto max-w-3xl pt-12'}>
+      <div id={'app-container'} className={'mx-auto max-w-5xl pt-12'}>
         <div
           id={'user-window'}
           className={
             'flex h-96 max-h-96 w-48 max-w-xs flex-col flex-nowrap gap-2.5 overflow-y-auto rounded-md border-2 bg-slate-50 px-5 py-2'
           }
         >
-          List Of Users
+          <span className={'font-semibold'}>List Of Users</span>
           <div>
             {users?.map((value, index) => {
-              return <p key={index}>{value.userName}</p>;
+              let whoAreU = 'text-black';
+              if (value.userName == user) {
+                whoAreU = 'text-blue-600';
+              }
+              return (
+                <p key={index} className={whoAreU}>
+                  {value.userName}
+                </p>
+              );
             })}
           </div>
         </div>
@@ -301,6 +332,32 @@ const Home: NextPage = () => {
             }
             label="Debug Mode"
           />
+        </div>
+        <div
+          id={'room-window'}
+          className={
+            'flex h-96 max-h-96 w-48 max-w-xs flex-col flex-nowrap gap-2.5 overflow-y-auto rounded-md border-2 bg-slate-50 px-5 py-2'
+          }
+        >
+          <span className={'font-semibold'}>List Of Rooms</span>
+          <div className={'flex flex-col flex-wrap content-start items-start'}>
+            {rooms?.map((value, index) => {
+              let selected = '';
+              if (value == room) {
+                selected = ` before:content-['🙄'] before:pr-2 text-cyan-600	`;
+              }
+              return (
+                <button
+                  key={index}
+                  className={selected}
+                  onClick={handleRoomChange}
+                  value={value}
+                >
+                  {value}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
       <Snackbar
