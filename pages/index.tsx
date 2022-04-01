@@ -24,7 +24,9 @@ import {
 } from '../consts';
 import { IMessage } from '../interfaces/message';
 import { IUser } from '../interfaces/user';
-import { ListOfUsers, ListOfMessages, ListOfRooms } from './components/ListOf';
+import { ListOfMessages } from './components/ListOfMessages';
+import { ListOfRooms } from './components/ListOfRooms';
+import { ListOfUsers } from './components/ListOfUsers';
 
 const Home: NextPage = () => {
   //TODO:

@@ -1,6 +1,5 @@
 import React from 'react';
 import { IMessage } from '../../interfaces/message';
-import { IUser } from '../../interfaces/user';
 
 export function ListOfMessages(
   messages: IMessage[],
@@ -30,41 +29,6 @@ export function ListOfMessages(
           {DEBUG && value.timestamp}
         </p>
       </div>
-    );
-  });
-}
-export function ListOfRooms(
-  rooms: string[],
-  room: string,
-  handleRoomChange: (e: any) => void
-): React.ReactNode {
-  return rooms?.map((value, index) => {
-    let selected = '';
-    if (value == room) {
-      selected = ` before:content-['🙄'] before:pr-2 text-cyan-600	`;
-    }
-    return (
-      <button
-        key={index}
-        className={selected}
-        onClick={handleRoomChange}
-        value={value}
-      >
-        {value}
-      </button>
-    );
-  });
-}
-export function ListOfUsers(users: IUser[], user: string): React.ReactNode {
-  return users?.map((value, index) => {
-    let whoAreU = 'text-black';
-    if (value.userName == user) {
-      whoAreU = 'text-blue-600';
-    }
-    return (
-      <p key={index} className={whoAreU}>
-        {value.userName}
-      </p>
     );
   });
 }
