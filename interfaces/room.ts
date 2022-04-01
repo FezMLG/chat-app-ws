@@ -1,3 +1,8 @@
+import { IMessage } from './message';
+import { IUser } from './user';
+
 export interface IRoom {
-  roomName: string;
+  name: string;
+  users: IUser[];
+  messages: IMessage[];
 }

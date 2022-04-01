@@ -8,9 +8,26 @@ import {
   CLEARED_OLD_MESSAGES,
   CONNECT_USER,
   DISCONNECT_USER,
+  JOIN_ROOM_REQUEST,
+  JOIN_ROOM_ANSWER,
+  LEAVE_ROOM_REQUEST,
 } from '../consts';
 import { IMessage } from '../interfaces/message';
+import { IRoom } from '../interfaces/room';
 import { IUser } from '../interfaces/user';
+
+class Rooms {
+  rooms: IRoom[] = [];
+  constructor() {
+    this.rooms = [];
+  }
+  getRoom(name: string) {
+    return this.rooms.find((room) => room.name == name);
+  }
+  getRooms() {
+    return this.rooms;
+  }
+}
 
 class Messages {
   messages: IMessage[] = [];
@@ -52,7 +69,6 @@ export function setupHandlers(io: Server) {
   const users = new Users();
   io.on('connection', (socket) => {
     console.log('Client connected', io.of('/').sockets.size);
-    socket.join('General');
     socket.emit(
       'connected',
       {
@@ -62,6 +78,11 @@ export function setupHandlers(io: Server) {
       },
       socket.id
     );
+    socket.on(JOIN_ROOM_REQUEST, (newRoom) => {
+      socket.rooms.clear();
+      socket.join(newRoom);
+      socket.emit(JOIN_ROOM_ANSWER, true, newRoom);
+    });
     socket.on(CONNECT_USER, (arg: string) => {
       users.push({ userName: arg, userId: socket.id });
       socket.broadcast.emit(CONNECT_USER, { userName: arg, userId: socket.id });
@@ -72,6 +93,7 @@ export function setupHandlers(io: Server) {
         message: `User ${reason} has disconnected`,
         timestamp: Date.now(),
       });
+      users.delete(socket.id);
     });
     socket.on(CLEAR_OLD_MESSAGES, () => {
       messages.clear();
@@ -82,7 +104,9 @@ export function setupHandlers(io: Server) {
     });
     socket.on(OUT_MESSAGE, (arg: IMessage) => {
       messages.push(arg);
-      socket.to('General').emit(IN_MESSAGE, arg);
+      socket.rooms.forEach((room) => {
+        socket.to(room).emit(IN_MESSAGE, arg);
+      });
     });
   });
 }

@@ -18,6 +18,9 @@ import {
   CLEAR_OLD_MESSAGES,
   CONNECT_USER,
   DISCONNECT_USER,
+  JOIN_ROOM_REQUEST,
+  JOIN_ROOM_ANSWER,
+  GET_ROOM_USERS,
 } from '../consts';
 import { IMessage } from '../interfaces/message';
 import { IUser } from '../interfaces/user';
@@ -74,13 +77,13 @@ const Home: NextPage = () => {
       setLoading(true);
     });
     socket.emit(CONNECT_USER, user);
+    socket.emit(JOIN_ROOM_REQUEST, room);
     socket.on(CONNECT_USER, (arg: IUser) => {
       console.log('connected', arg);
       setUsers((prev) => {
         return [...prev, arg];
       });
     });
-    socket.emit(GET_OLD_MESSAGES);
     socket.on(IN_OLD_MESSAGES, (messages: IMessage[], users: IUser[]) => {
       console.log(IN_OLD_MESSAGES, typeof messages, messages);
       if (messages?.length > 0) {
@@ -127,6 +130,20 @@ const Home: NextPage = () => {
       if (arg) {
         console.log(IN_MESSAGE, arg);
         addMessageToList(arg);
+      }
+    });
+    socket.on(JOIN_ROOM_ANSWER, (answer: boolean, name: string) => {
+      if (answer) {
+        setOpen({
+          message: `Connected to room ${name}`,
+          isOpen: true,
+          type: 'success',
+        });
+        setRoom(name);
+        socket.emit(GET_OLD_MESSAGES);
+        socket.emit(GET_ROOM_USERS);
+        setMessages([]);
+        setUsers([]);
       }
     });
     socket.on('disconnect', function () {
@@ -192,8 +209,7 @@ const Home: NextPage = () => {
   }
 
   const handleRoomChange = (e: any) => {
-    setRoom(e.target.value);
-    console.log(room);
+    socket?.emit(JOIN_ROOM_REQUEST, e.target.value);
   };
 
   const handleClose = (
