@@ -25,8 +25,8 @@ import {
 import { IMessage } from '../interfaces/message';
 import { IUser } from '../interfaces/user';
 import ListOfMessages from './components/Messages/ListOfMessages';
-import ListOfRooms from './components/Rooms/ListOfRooms';
-import ListOfUsers from './components/Users/ListOfUsers';
+import Users from './components/Users';
+import Rooms from './components/Rooms';
 
 const Home: NextPage = () => {
   //TODO:
@@ -232,15 +232,7 @@ const Home: NextPage = () => {
   return (
     <div id="window" className={'h-full min-h-screen w-screen bg-slate-100'}>
       <div id={'app-container'} className={'mx-auto max-w-5xl pt-12'}>
-        <div
-          id={'user-window'}
-          className={
-            'flex h-96 max-h-96 w-48 max-w-xs flex-col flex-nowrap gap-2.5 overflow-y-auto rounded-md border-2 bg-slate-50 px-5 py-2'
-          }
-        >
-          <span className={'font-semibold'}>List Of Users</span>
-          <ListOfUsers users={users} user={user} />
-        </div>
+        <Users users={users} user={user} />
         <div id="chat-window" className={'mx-auto w-full max-w-xl gap-5'}>
           <div
             id="messages-container"
@@ -311,15 +303,7 @@ const Home: NextPage = () => {
             label="Debug Mode"
           />
         </div>
-        <div
-          id={'room-window'}
-          className={
-            'flex h-96 max-h-96 w-48 max-w-xs flex-col flex-nowrap gap-2.5 overflow-y-auto rounded-md border-2 bg-slate-50 px-5 py-2'
-          }
-        >
-          <span className={'font-semibold'}>List Of Rooms</span>
-          <ListOfRooms rooms={rooms} room={room} socket={socket} />
-        </div>
+        <Rooms rooms={rooms} room={room} socket={socket} />
       </div>
       <Snackbar
         open={open.isOpen}
