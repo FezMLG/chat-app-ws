@@ -1,5 +1,5 @@
 import React, { FunctionComponent } from 'react';
-import { IUser } from '../../interfaces/user';
+import { IUser } from '../../../interfaces/user';
 
 const ListOfUsers: FunctionComponent<{
   users: IUser[];

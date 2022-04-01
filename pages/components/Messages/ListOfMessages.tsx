@@ -1,5 +1,5 @@
 import React, { FunctionComponent } from 'react';
-import { IMessage } from '../../interfaces/message';
+import { IMessage } from '../../../interfaces/message';
 
 const ListOfMessages: FunctionComponent<{
   messages: IMessage[];

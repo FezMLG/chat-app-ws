@@ -1,5 +1,5 @@
 import React, { FunctionComponent } from 'react';
-import { JOIN_ROOM_REQUEST } from '../../consts';
+import { JOIN_ROOM_REQUEST } from '../../../consts';
 import { Socket } from 'socket.io-client';
 
 const ListOfRooms: FunctionComponent<{
