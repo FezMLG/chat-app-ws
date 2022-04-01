@@ -17,9 +17,12 @@ import {
   CLEAR_OLD_MESSAGES,
   CONNECT_USER,
   DISCONNECT_USER,
-  JOIN_ROOM_REQUEST,
-  JOIN_ROOM_ANSWER,
+  CHANGE_ROOM_REQUEST,
+  CHANGE_ROOM_ANSWER,
   GET_ROOM_USERS,
+  LEAVE_ROOM_ANSWER,
+  LEAVE_ROOM_REQUEST,
+  JOIN_ROOM_REQUEST,
 } from '../consts';
 import { IMessage } from '../interfaces/message';
 import { IUser } from '../interfaces/user';
@@ -122,18 +125,26 @@ const Home: NextPage = () => {
       }
       setLoading(false);
     });
-    socket.on(JOIN_ROOM_ANSWER, (answer: boolean, name: string) => {
+    socket.on(CHANGE_ROOM_ANSWER, (answer: boolean, newRoom: string) => {
       if (answer) {
         setOpen({
-          message: `Connected to room ${name}`,
+          message: `Connected to room ${newRoom}`,
           isOpen: true,
           type: 'success',
         });
-        setActiveRoom(name);
+        setActiveRoom(newRoom);
         socket.emit(GET_OLD_MESSAGES);
         socket.emit(GET_ROOM_USERS);
         setMessages([]);
         setUsers([]);
+        console.log('connected to room', newRoom);
+      } else {
+        setOpen({
+          message: `Failed to connect to room ${newRoom}`,
+          isOpen: true,
+          type: 'error',
+        });
+        console.log('failed to connect to room', newRoom);
       }
     });
 
@@ -300,7 +311,7 @@ const Home: NextPage = () => {
             label="Debug Mode"
           />
         </div>
-        <Rooms rooms={availableRooms} room={activeRoom} socket={socket} />
+        <Rooms rooms={availableRooms} activeRoom={activeRoom} socket={socket} />
       </div>
       <Snackbar
         open={open.isOpen}

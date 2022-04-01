@@ -7,10 +7,11 @@ import {
   CLEARED_OLD_MESSAGES,
   CONNECT_USER,
   DISCONNECT_USER,
-  JOIN_ROOM_REQUEST,
-  JOIN_ROOM_ANSWER,
+  CHANGE_ROOM_REQUEST,
+  CHANGE_ROOM_ANSWER,
   LEAVE_ROOM_REQUEST,
   LEAVE_ROOM_ANSWER,
+  JOIN_ROOM_REQUEST,
 } from '../consts';
 import { IMessage } from '../interfaces/message';
 import { IRoom } from '../interfaces/room';
@@ -80,13 +81,14 @@ export function setupHandlers(io: Server) {
     );
 
     // * rooms
-    socket.on(JOIN_ROOM_REQUEST, async (newRoom) => {
-      await socket.join(newRoom);
-      socket.emit(JOIN_ROOM_ANSWER, true, newRoom);
+    socket.on(JOIN_ROOM_REQUEST, (newRoom: any) => {
+      socket.join(newRoom);
+      socket.emit(CHANGE_ROOM_ANSWER, true, newRoom);
     });
-    socket.on(LEAVE_ROOM_REQUEST, (oldRoom) => {
+    socket.on(CHANGE_ROOM_REQUEST, (oldRoom, newRoom) => {
       socket.leave(oldRoom);
-      socket.emit(LEAVE_ROOM_ANSWER, true, oldRoom);
+      socket.join(newRoom);
+      socket.emit(CHANGE_ROOM_ANSWER, true, newRoom);
     });
 
     // * old messages

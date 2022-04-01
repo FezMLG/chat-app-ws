@@ -3,9 +3,9 @@ import { Socket } from 'socket.io-client';
 import ListOfRooms from './ListOfRooms';
 const Rooms: FunctionComponent<{
   rooms: string[];
-  room: string;
+  activeRoom: string;
   socket: Socket | undefined;
-}> = ({ rooms, room, socket }) => {
+}> = ({ rooms, activeRoom, socket }) => {
   return (
     <div
       id={'room-window'}
@@ -14,7 +14,7 @@ const Rooms: FunctionComponent<{
       }
     >
       <span className={'font-semibold'}>List Of Rooms</span>
-      <ListOfRooms rooms={rooms} room={room} socket={socket} />
+      <ListOfRooms rooms={rooms} activeRoom={activeRoom} socket={socket} />
     </div>
   );
 };
