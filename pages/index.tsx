@@ -156,6 +156,22 @@ const Home: NextPage = () => {
     setSocket(socket);
   }, []);
 
+  const addMessageToList = (mess: IMessage) => {
+    mess.message = mess.message.trim();
+    setMessages((prevState) => {
+      return [...prevState, mess].sort((a, b) => {
+        return a.timestamp - b.timestamp;
+      });
+    });
+  };
+
+  useEffect(() => {
+    scrollTo.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest',
+    });
+  }, [messages]);
+
   const handleSending = () => {
     if (message != null) {
       if (message.length > 500) {
@@ -177,22 +193,6 @@ const Home: NextPage = () => {
     }
     console.log(messages);
   };
-
-  const addMessageToList = (mess: IMessage) => {
-    mess.message = mess.message.trim();
-    setMessages((prevState) => {
-      return [...prevState, mess].sort((a, b) => {
-        return a.timestamp - b.timestamp;
-      });
-    });
-  };
-
-  useEffect(() => {
-    scrollTo.current?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'nearest',
-    });
-  }, [messages]);
 
   function handleInput(e: React.ChangeEvent<HTMLInputElement>) {
     setMessage(e.target.value);
@@ -240,19 +240,7 @@ const Home: NextPage = () => {
           }
         >
           <span className={'font-semibold'}>List Of Users</span>
-          <div>
-            {users?.map((value, index) => {
-              let whoAreU = 'text-black';
-              if (value.userName == user) {
-                whoAreU = 'text-blue-600';
-              }
-              return (
-                <p key={index} className={whoAreU}>
-                  {value.userName}
-                </p>
-              );
-            })}
-          </div>
+          <div>{ListOfUsers(users, user)}</div>
         </div>
         <div id="chat-window" className={'mx-auto w-full max-w-xl gap-5'}>
           <div
@@ -273,31 +261,7 @@ const Home: NextPage = () => {
               <LinearProgress />
             </Fade>
 
-            {messages?.map((value, index) => {
-              let whoAreU = 'text-black';
-              let sender = value.user;
-              let position = 'self-start text-left';
-              if (value.user == user) {
-                whoAreU = 'text-blue-600';
-                sender = 'You';
-                position = 'self-end text-right';
-              } else if (value.user == 'Local') {
-                whoAreU = 'text-rose-900';
-                position = 'self-center text-center';
-              } else if (value.user == 'System') {
-                whoAreU = 'text-rose-500';
-                position = 'self-center text-center';
-              }
-              return (
-                <div key={index} className={`flex w-full flex-col`}>
-                  <p className={`${whoAreU} ${position} flex w-9/12 flex-col`}>
-                    <span className={'text-xs'}>{sender}</span>
-                    <span>{value.message}</span>
-                    {DEBUG && value.timestamp}
-                  </p>
-                </div>
-              );
-            })}
+            {ListOfMessages(messages, user, DEBUG)}
             <div ref={scrollTo} />
           </div>
           <div
@@ -357,22 +321,7 @@ const Home: NextPage = () => {
         >
           <span className={'font-semibold'}>List Of Rooms</span>
           <div className={'flex flex-col flex-wrap content-start items-start'}>
-            {rooms?.map((value, index) => {
-              let selected = '';
-              if (value == room) {
-                selected = ` before:content-['🙄'] before:pr-2 text-cyan-600	`;
-              }
-              return (
-                <button
-                  key={index}
-                  className={selected}
-                  onClick={handleRoomChange}
-                  value={value}
-                >
-                  {value}
-                </button>
-              );
-            })}
+            {ListOfRooms(rooms, room, handleRoomChange)}
           </div>
         </div>
       </div>
@@ -394,3 +343,71 @@ const Home: NextPage = () => {
 };
 
 export default Home;
+function ListOfMessages(
+  messages: IMessage[],
+  user: string,
+  DEBUG: boolean
+): React.ReactNode {
+  return messages?.map((value, index) => {
+    let whoAreU = 'text-black';
+    let sender = value.user;
+    let position = 'self-start text-left';
+    if (value.user == user) {
+      whoAreU = 'text-blue-600';
+      sender = 'You';
+      position = 'self-end text-right';
+    } else if (value.user == 'Local') {
+      whoAreU = 'text-rose-900';
+      position = 'self-center text-center';
+    } else if (value.user == 'System') {
+      whoAreU = 'text-rose-500';
+      position = 'self-center text-center';
+    }
+    return (
+      <div key={index} className={`flex w-full flex-col`}>
+        <p className={`${whoAreU} ${position} flex w-9/12 flex-col`}>
+          <span className={'text-xs'}>{sender}</span>
+          <span>{value.message}</span>
+          {DEBUG && value.timestamp}
+        </p>
+      </div>
+    );
+  });
+}
+
+function ListOfRooms(
+  rooms: string[],
+  room: string,
+  handleRoomChange: (e: any) => void
+): React.ReactNode {
+  return rooms?.map((value, index) => {
+    let selected = '';
+    if (value == room) {
+      selected = ` before:content-['🙄'] before:pr-2 text-cyan-600	`;
+    }
+    return (
+      <button
+        key={index}
+        className={selected}
+        onClick={handleRoomChange}
+        value={value}
+      >
+        {value}
+      </button>
+    );
+  });
+}
+
+function ListOfUsers(users: IUser[], user: string): React.ReactNode {
+  return users?.map((value, index) => {
+    let whoAreU = 'text-black';
+    if (value.userName == user) {
+      whoAreU = 'text-blue-600';
+    }
+    return (
+      <p key={index} className={whoAreU}>
+        {value.userName}
+      </p>
+    );
+  });
+}
