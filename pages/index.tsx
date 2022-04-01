@@ -35,7 +35,6 @@ const Home: NextPage = () => {
 
   const [message, setMessage] = useState<string>('');
   const [room, setRoom] = useState<string>('General');
-  const [rooms, setRooms] = useState<string[]>(['General', 'Welcome']);
   const [messages, setMessages] = useState<IMessage[]>([]);
   const scrollTo = useRef<HTMLDivElement>(null);
   const [socket, setSocket] = useState<Socket>();
@@ -56,15 +55,6 @@ const Home: NextPage = () => {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    setTimeout(() => {
-      DEBUG &&
-        addMessageToList({
-          user: 'Local',
-          message: '3sek',
-          timestamp: Date.now(),
-        });
-    }, 3000);
-
     const socket = io();
     socket?.once('connected', (arg: IMessage, arg2: string) => {
       setMessages([]);
@@ -239,14 +229,6 @@ const Home: NextPage = () => {
             className={
               'flex h-96 max-h-96 w-full flex-col flex-nowrap gap-2.5 overflow-y-auto rounded-md border-2 bg-slate-50 px-5 py-2'
             }
-            onClick={() =>
-              DEBUG &&
-              addMessageToList({
-                user: 'Local',
-                message: 'Clicked',
-                timestamp: Date.now(),
-              })
-            }
           >
             <Fade in={loading} unmountOnExit>
               <LinearProgress />
@@ -303,7 +285,7 @@ const Home: NextPage = () => {
             label="Debug Mode"
           />
         </div>
-        <Rooms rooms={rooms} room={room} socket={socket} />
+        <Rooms room={room} socket={socket} />
       </div>
       <Snackbar
         open={open.isOpen}
