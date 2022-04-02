@@ -1,3 +1,5 @@
+import Messages from './components/Messages/';
+import UserMessageInput from './../UserMessageInput';
 import {
   Snackbar,
   Alert,
@@ -35,14 +37,12 @@ const Home: NextPage = () => {
   //closing connection event
   //when fetching old messages, fetch connected users
 
-  const [message, setMessage] = useState<string>('');
   const [activeRoom, setActiveRoom] = useState<string>('General');
   const [availableRooms, setAvailableRooms] = useState<string[]>([
     'General',
     'Welcome',
   ]);
   const [messages, setMessages] = useState<IMessage[]>([]);
-  const scrollTo = useRef<HTMLDivElement>(null);
   const [socket, setSocket] = useState<Socket>();
   const [user, setUser] = useState<string>(
     `user ${String(Math.floor(Math.random() * 1000))}`
@@ -184,47 +184,8 @@ const Home: NextPage = () => {
     });
   };
 
-  useEffect(() => {
-    scrollTo.current?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'nearest',
-    });
-  }, [messages]);
-
-  const handleSending = () => {
-    if (message != null) {
-      if (message.length > 500) {
-        setOpen({
-          message: 'Message is longer than 500 characters',
-          isOpen: true,
-          type: 'error',
-        });
-      } else {
-        const createdMessage = {
-          user,
-          message,
-          timestamp: Date.now(),
-        };
-        setMessage('');
-        addMessageToList(createdMessage);
-        socket?.emit(NEW_CLIENT_MESSAGE, createdMessage);
-      }
-    }
-    console.log(messages);
-  };
-
-  const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setMessage(e.target.value);
-  };
-
   const handleInputUser = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUser(e.target.value);
-  };
-
-  const handleKeyPress = (e: any) => {
-    if (e.key === 'Enter') {
-      handleSending();
-    }
   };
 
   const handleClose = (
@@ -250,39 +211,15 @@ const Home: NextPage = () => {
       <div id={'app-container'} className={'mx-auto max-w-5xl pt-12'}>
         <Users users={users} user={user} />
         <div id="chat-window" className={'mx-auto w-full max-w-xl gap-5'}>
-          <div
-            id="messages-container"
-            className={
-              'flex h-96 max-h-96 w-full flex-col flex-nowrap gap-2.5 overflow-y-auto rounded-md border-2 bg-slate-50 px-5 py-2'
-            }
-          >
-            <Fade in={loading} unmountOnExit>
-              <LinearProgress />
-            </Fade>
-            <ListOfMessages messages={messages} user={user} DEBUG={DEBUG} />
-            <div ref={scrollTo} />
-          </div>
-          <div
-            id="input-container"
-            className={'sticky bottom-0 flex w-full flex-row gap-5'}
-          >
-            <input
-              type={'text'}
-              id={'user-message'}
-              placeholder={'Your Message'}
-              className={'h-full w-full rounded-md border-2 px-2'}
-              onChange={handleInput}
-              onKeyPress={handleKeyPress}
-              value={message}
-              autoComplete="off"
-            />
-            <button
-              onClick={handleSending}
-              className={'mr-5 rounded-md bg-sky-600 px-5 text-white'}
-            >
-              Send
-            </button>
-          </div>
+          <Messages
+            loading={loading}
+            messages={messages}
+            user={user}
+            DEBUG={DEBUG}
+            addMessageToList={addMessageToList}
+            socket={socket}
+            // setOpen={setOpen}
+          />
           <input
             type={'text'}
             id={'user-name'}
