@@ -5,6 +5,7 @@ import { NEW_CLIENT_MESSAGE } from '../../../consts';
 import { IMessage } from '../../../interfaces/message';
 import UserMessageInput from '../../../UserMessageInput';
 import ListOfMessages from './ListOfMessages';
+import { v4 as uuidv4 } from 'uuid';
 
 const Messages: FunctionComponent<{
   loading: boolean;
@@ -57,9 +58,10 @@ const Messages: FunctionComponent<{
         // });
       } else {
         const createdMessage = {
+          id: uuidv4(),
           user,
-          message,
           timestamp: Date.now(),
+          message,
         };
         setMessage('');
         addMessageToList(createdMessage);

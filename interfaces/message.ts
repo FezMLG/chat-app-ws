@@ -1,8 +1,8 @@
 import { IUser } from './user';
 
 export interface IMessage {
+  id: string;
   user: string;
-  message: string;
   timestamp: number;
-  id?: string;
+  message: string;
 }

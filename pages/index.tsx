@@ -71,7 +71,7 @@ const Home: NextPage = () => {
         type: 'success',
       });
       setUsers((prev) => {
-        return [...prev, { userName: user, userId: arg2 }];
+        return [...prev, { name: user, id: arg2 }];
       });
       setLoading(true);
     });

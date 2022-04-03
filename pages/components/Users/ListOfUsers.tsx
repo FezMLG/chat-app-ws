@@ -9,12 +9,12 @@ const ListOfUsers: FunctionComponent<{
     <div>
       {users?.map((value, index) => {
         let whoAreU = 'text-black';
-        if (value.userName == user) {
+        if (value.name == user) {
           whoAreU = 'text-blue-600';
         }
         return (
           <p key={index} className={whoAreU}>
-            {value.userName}
+            {value.name}
           </p>
         );
       })}

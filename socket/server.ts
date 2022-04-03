@@ -1,3 +1,4 @@
+import { RedisClientType, RedisScripts } from 'redis';
 import { Server } from 'socket.io';
 import {
   NEW_CLIENT_MESSAGE,
@@ -16,58 +17,13 @@ import {
 import { IMessage } from '../interfaces/message';
 import { IRoom } from '../interfaces/room';
 import { IUser } from '../interfaces/user';
+import createRedis from '../server/createRedis';
 
-class Rooms {
-  rooms: IRoom[] = [];
-  constructor() {
-    this.rooms = [];
-  }
-  getRoom(name: string) {
-    return this.rooms.find((room) => room.name == name);
-  }
-  getRooms() {
-    return this.rooms;
-  }
-}
+export async function setupHandlers(io: Server, client: any) {
+  await createRedis(client);
 
-class Messages {
-  messages: IMessage[] = [];
-  constructor() {
-    this.messages = [];
-  }
-  push(message: IMessage) {
-    this.messages.push(message);
-  }
-  clear() {
-    this.messages = [];
-  }
-  get() {
-    return this.messages;
-  }
-}
-
-class Users {
-  users: IUser[] = [];
-  constructor() {
-    this.users = [];
-  }
-  push(user: IUser) {
-    this.users.push(user);
-  }
-  delete(id: string) {
-    this.users = this.users.filter((item) => item.userId !== id);
-  }
-  clear() {
-    this.users = [];
-  }
-  get() {
-    return this.users;
-  }
-}
-
-export function setupHandlers(io: Server) {
-  const messages = new Messages();
-  const users = new Users();
+  // const messages = [];
+  // const users = [];
   io.on('connection', (socket) => {
     console.log('Client connected', io.of('/').sockets.size);
     socket.emit(
@@ -93,24 +49,26 @@ export function setupHandlers(io: Server) {
 
     // * old messages
     socket.on(CLEAR_OLD_MESSAGES, () => {
-      messages.clear();
-      socket.emit(CLEARED_OLD_MESSAGES, messages.get());
+      // messages.clear();
+      // socket.emit(CLEARED_OLD_MESSAGES, messages.get());
     });
     socket.on(GET_OLD_MESSAGES, () => {
-      socket.emit(IN_OLD_MESSAGES, messages.get(), users.get());
+      // socket.emit(IN_OLD_MESSAGES, messages.get(), users.get());
     });
 
     // * sending messages
     socket.on(NEW_CLIENT_MESSAGE, (arg: IMessage) => {
-      messages.push(arg);
-      socket.rooms.forEach((room) => {
+      // messages.push(arg);
+      socket.rooms.forEach(async (room) => {
         socket.to(room).emit(NEW_CLIENT_MESSAGE, arg);
+        console.log(room, arg);
+        await client.json.arrAppend('Rooms', `$.${room}.ListOfMessages`, arg);
       });
     });
 
     // * on connect
     socket.on(CONNECT_USER, (arg: string) => {
-      users.push({ userName: arg, userId: socket.id });
+      // users.push({ userName: arg, userId: socket.id });
       socket.broadcast.emit(CONNECT_USER, { userName: arg, userId: socket.id });
     });
     // * on disconnect
@@ -120,7 +78,7 @@ export function setupHandlers(io: Server) {
         message: `User ${reason} has disconnected`,
         timestamp: Date.now(),
       });
-      users.delete(socket.id);
+      // users.delete(socket.id);
     });
   });
 }
