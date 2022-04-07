@@ -1,10 +1,5 @@
 import { createServer } from 'http';
-import {
-  createClient,
-  RedisClientType,
-  RedisModules,
-  RedisScripts,
-} from 'redis';
+import { createClient } from 'redis';
 const { parse } = require('url');
 const next = require('next');
 const { Server } = require('socket.io');
